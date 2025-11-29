@@ -218,7 +218,6 @@ router.post('/api/login', (context) => {
 });
 
 router.post('/api/logout', (context) => {
-  debugger;
   const { request, response } = context;
   const cookieHeader = request.headers['cookie'];
   if (cookieHeader) {
