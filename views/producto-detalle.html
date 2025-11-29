@@ -19,7 +19,45 @@
       <button type="submit">Subir Imagen</button>
     </form>
   </div>
+  <div class="comentario-usuario">
+    <h3>Agregar comentario</h3>
+    <form action="/productos/{{producto.id}}/comentarios" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="user_id" value="{{user.id}}"/>
+        <input type="hidden" name="fecha" value="{{user.nombre}}"/>
+        <input type="hidden" name="nombre" value="{{user.nombre}}"/>
+        <div class="row">
+          <label for="comentarioId"><strong>Comentario:</strong></label>
+          <input type="text" id="comentarioId" name="comentario" accept="image/*" required value=""/>
+        </div>
+        <div class="row">
+          <label for="puntuacionId"><strong>Valoración:</strong></label>
+          <select id="puntuacionId" name="puntuacion" accept="image/*" required value="">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+      <button type="submit">Subir comentario</button>
+    </form>
+  </div>
   {{/if}}
 
   <a href="/productos" class="btn-secondary">← Volver a Productos</a>
+
+
+  {{#if producto.comentarios.length > 0}}
+
+  <div class="comentarios-seccion">
+    <h3>Comentarios</h3>
+    {{#each producto.comentarios}}
+      <div class="comentario">
+        <p><strong>Nombre:</strong> {{this.nombre}}</p>
+        <p><strong>Comentario:</strong> {{this.comentario}}</p>
+        <p><strong>Fecha:</strong> {{this.fecha}}</p>
+      </div>
+    {{/each}}
+  </div>
+  {{/if}}
 </div>

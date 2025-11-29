@@ -8,12 +8,8 @@ const path = require('path');
 const fs = require('fs');
 
 // Datos de ejemplo
-const productos = [
-  { id: 1, nombre: 'Laptop Gaming', precio: 1200, categoria: 'Electrónica' },
-  { id: 2, nombre: 'Mouse Inalámbrico', precio: 50, categoria: 'Accesorios' },
-  { id: 3, nombre: 'Teclado Mecánico', precio: 150, categoria: 'Accesorios' },
-  { id: 4, nombre: 'Monitor 27"', precio: 300, categoria: 'Electrónica' }
-];
+const productosData = fs.readFileSync(path.join(__dirname, 'data', 'productos.json'), 'utf-8');
+const productos = JSON.parse(productosData.trim().replace(/^\uFEFF/, ''));
 const users = require('./data/users.json');
 
 // Inicializar componentes
@@ -300,6 +296,45 @@ router.post('/productos/:id/upload', async (context) => {
     response.writeHead(500, { 'Content-Type': 'text/html' });
     response.end('Error interno al guardar la imagen');
   }
+});
+
+router.post('/productos/:id/comentarios', async (context) => {
+  const { request, response, params, body } = context;
+  const id = parseInt(params.id);
+  const producto = productos.find(p => p.id === id);
+
+  if (!producto) {
+    response.writeHead(404, { 'Content-Type': 'text/html' });
+    response.end('Producto no encontrado');
+    return;
+  }
+
+  // Validar sesión - sólo usuarios logueados
+  if (!context.user) {
+    response.writeHead(401, { 'Content-Type': 'text/html' });
+    response.end('No autorizado. Inicia sesión para subir imágenes.');
+    return;
+  }
+
+  const errors = [];
+  if(!body.fields?.user_id)[...errors, 'Debes iniciar sessión'];
+  if(!body.fields?.puntuacion)[...errors, 'Debes iniciar sessión'];
+  if(!body.fields?.nombre)[...errors, 'Debes iniciar sessión'];
+  if(!body.fields?.comentario)[...errors, 'Debes iniciar sessión'];
+
+  if(errors.length > 0){
+    response.writeHead(401, { 'Content-Type': 'text/html' });
+    response.end('Datos incompletos o no válidos:\n'.errors.join('\n'));
+    return;
+  }
+  const fecha = new Date();
+  body.fields.fecha = `${fecha.getFullYear()}-${fecha.getMonth()+1}-${fecha.getDate()}`
+
+
+  console.log('----->comentario:', body.fields);
+  const comentario = body.fields;
+  response.writeHead(302, { 'Location': `/productos/${id}` });
+  response.end();
 });
 
 

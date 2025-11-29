@@ -43,24 +43,34 @@ class TemplateEngine {
   processTemplate(template, data){
     const resolver = (path, obj) => path.split('.').reduce((prev, curr) => (prev ? prev[curr] : undefined), obj);
 
+    // Soporte para condicionales con > {{#if variable > 0}}...{{/if}}
+    template = template.replace(/\{\{#if ([\w.]+)\s*>\s*(\d+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, conditionName, number, templateContent) => {
+      const value = resolver(conditionName, data);
+      if (value > parseInt(number, 10)) {
+        return templateContent;
+      }
+      return '';
+    });
+
     // Soporte para condicionales {{#if condicion}}...{{/if}}
     template = template.replace(/\{\{#if ([\w.]+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, conditionName, templateContent) => {
       const value = resolver(conditionName, data);
-      if (value) {
+      if (value && (!Array.isArray(value) || value.length > 0)) {
         return templateContent;
       }
       return '';
     });
 
     // Soporte para bucles básicos {{#each items}}{{/each}}
-    template = template.replace(/\{\{#each (\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, arrayName, templateContent) => {
-      const array = data[arrayName] || [];
+    template = template.replace(/\{\{#each ([\w.]+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (match, arrayName, templateContent) => {
+      const array = resolver(arrayName, data) || [];
       if(!Array.isArray(array))return '';
       return array.map(item => {
         // Reemplazar propiedades del item {{propiedad}}
         return templateContent.replace(/\{\{([\w.]+)\}\}/g, (match, prop) => {
           // Dentro del bucle, el contexto es el 'item'
-          const value = resolver(prop, item);
+          const propName = prop.startsWith('this.') ? prop.substring(5) : prop;
+          const value = resolver(propName, item);
           return value !== undefined && value !== null ? value : '';
         });
       }).join('');

@@ -267,3 +267,38 @@ footer {
 #login-form button:hover {
   background: #2980b9;
 }
+
+.comentarios-seccion {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.comentarios-seccion h3 {
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.comentario {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.comentario-usuario {
+  font-weight: bold;
+  color: #34495e;
+  margin-bottom: 0.25rem;
+}
+
+.comentario-texto {
+  margin-bottom: 0.5rem;
+}
+
+.comentario-fecha {
+  font-size: 0.8em;
+  color: #7f8c8d;
+  text-align: right;
+}
