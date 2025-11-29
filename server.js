@@ -218,6 +218,7 @@ router.post('/api/login', (context) => {
 });
 
 router.post('/api/logout', (context) => {
+  debugger;
   const { request, response } = context;
   const cookieHeader = request.headers['cookie'];
   if (cookieHeader) {
@@ -233,6 +234,23 @@ router.post('/api/logout', (context) => {
   // Borrar cookie
   response.writeHead(200, { 'Set-Cookie': 'sessionId=; Max-Age=0; Path=/' , 'Content-Type': 'application/json'});
   response.end(JSON.stringify({ message: 'Logout exitoso' }));
+});
+
+// Ruta de logout por GET como fallback para usuarios sin JS funcional
+router.get('/logout', (context) => {
+  const { request, response } = context;
+  const cookieHeader = request.headers['cookie'];
+  if (cookieHeader) {
+    const cookies = cookieHeader.split(';').reduce((acc, c) => {
+      const [k,v] = c.split('=').map(s=>s && s.trim()); if (k) acc[k]=v; return acc;
+    }, {});
+    const sessionId = cookies.sessionId;
+    if (sessionId) {
+      sessions.delete(sessionId);
+    }
+  }
+  response.writeHead(302, { 'Location': '/login', 'Set-Cookie': 'sessionId=; Max-Age=0; Path=/' });
+  response.end();
 });
 
 router.post('/productos/:id/upload', async (context) => {
@@ -303,13 +321,13 @@ const servidor = http.createServer(async (request, response) => {
     if (routeInfo) {
       await router.execute(request, response, routeInfo);
     } else {
-      // Página 404
+      // Página 404 (sin contexto de usuario)
       const html = await templates.render('404', {
         titulo: 'Página no encontrada',
-        mensaje: `La ruta ${pathname} no existe en este servidor.`
-        , user: context.user
-        , isAuthenticated: !!context.user
-        , isGuest: !context.user
+        mensaje: `La ruta ${pathname} no existe en este servidor.`,
+        user: null,
+        isAuthenticated: false,
+        isGuest: true
       });
       response.writeHead(404, { 'Content-Type': 'text/html' });
       response.end(html);
@@ -318,14 +336,14 @@ const servidor = http.createServer(async (request, response) => {
   } catch (error) {
     console.error('Error en el servidor:', error);
 
-    // Página de error
+    // Página de error (sin contexto de usuario)
     const html = await templates.render('error', {
       titulo: 'Error del servidor',
       mensaje: 'Ha ocurrido un error interno. Por favor, inténtalo de nuevo más tarde.',
-      error: process.env.NODE_ENV === 'development' ? error.message : ''
-      , user: context.user
-      , isAuthenticated: !!context.user
-      , isGuest: !context.user
+      error: process.env.NODE_ENV === 'development' ? error.message : '',
+      user: null,
+      isAuthenticated: false,
+      isGuest: true
     });
 
     response.writeHead(500, { 'Content-Type': 'text/html' });
