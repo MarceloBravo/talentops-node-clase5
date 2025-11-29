@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "nombre": "Juan Pérez",
+        "usuario": "juan_perez",
+        "contrasena": "contrasena123"
+    },
+    {
+        "id": 1,
+        "nombre": "Pedro Gonzalez",
+        "usuario": "pedro",
+        "contrasena": "pedro123"
+    }
+]

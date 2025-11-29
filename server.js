@@ -2,8 +2,10 @@ const http = require('http');
 const Router = require('./router');
 const TemplateEngine = require('./templates');
 const StaticServer = require('./static-server');
-const { logger, cors, jsonParser, staticFiles } = require('./middleware');
+const { logger, cors, jsonParser, staticFiles, multipart, createSessionMiddleware } = require('./middleware');
 const url = require('url');
+const path = require('path');
+const fs = require('fs');
 
 // Datos de ejemplo
 const productos = [
@@ -12,6 +14,7 @@ const productos = [
   { id: 3, nombre: 'Teclado Mecánico', precio: 150, categoria: 'Accesorios' },
   { id: 4, nombre: 'Monitor 27"', precio: 300, categoria: 'Electrónica' }
 ];
+const users = require('./data/users.json');
 
 // Inicializar componentes
 const router = new Router();
@@ -19,8 +22,14 @@ const templates = new TemplateEngine();
 const staticServer = new StaticServer();
 
 // Configurar middleware
+// In-memory sessions store
+const sessions = new Map();
+
 router.use(logger);
 router.use(cors);
+router.use(jsonParser);
+router.use(multipart);
+router.use(createSessionMiddleware(sessions));
 
 // Rutas principales
 router.get('/', async (context) => {
@@ -30,6 +39,9 @@ router.get('/', async (context) => {
     titulo: 'Bienvenido a Mi Tienda',
     productos: productos.slice(0, 3), // Mostrar 3 productos destacados
     fecha: new Date().toLocaleDateString('es-ES')
+    , user: context.user
+    , isAuthenticated: !!context.user
+    , isGuest: !context.user
   });
 
   response.writeHead(200, { 'Content-Type': 'text/html' });
@@ -55,6 +67,9 @@ router.get('/productos', async (context) => {
     titulo: 'Nuestros Productos',
     productos: productosFiltrados,
     filtros: query
+    , user: context.user
+    , isAuthenticated: !!context.user
+    , isGuest: !context.user
   });
 
   response.writeHead(200, { 'Content-Type': 'text/html' });
@@ -70,15 +85,22 @@ router.get('/productos/:id', async (context) => {
     const html = await templates.render('404', {
       titulo: 'Producto no encontrado',
       mensaje: `El producto con ID ${id} no existe.`
+      , user: context.user
+      , isAuthenticated: !!context.user
+      , isGuest: !context.user
     });
     response.writeHead(404, { 'Content-Type': 'text/html' });
     response.end(html);
     return;
   }
-
+  // Asegurar imagen por defecto
+  if (!producto.imagen_url) producto.imagen_url = 'default.jpg';
   const html = await templates.render('producto-detalle', {
     titulo: producto.nombre,
-    producto
+    producto,
+    user: context.user
+    , isAuthenticated: !!context.user
+    , isGuest: !context.user
   });
 
   response.writeHead(200, { 'Content-Type': 'text/html' });
@@ -93,6 +115,23 @@ router.get('/acerca', async (context) => {
     empresa: 'Mi Tienda Online',
     descripcion: 'Somos una tienda especializada en productos tecnológicos.',
     fundacion: 2020
+    , user: context.user
+    , isAuthenticated: !!context.user
+    , isGuest: !context.user
+  });
+
+  response.writeHead(200, { 'Content-Type': 'text/html' });
+  response.end(html);
+});
+
+router.get('/login', async (context) => {
+  const { response } = context;
+
+  const html = await templates.render('login', {
+    titulo: 'Iniciar Sesión'
+    , user: context.user
+    , isAuthenticated: !!context.user
+    , isGuest: !context.user
   });
 
   response.writeHead(200, { 'Content-Type': 'text/html' });
@@ -157,6 +196,96 @@ router.get('/api/productos/:id', (context) => {
   response.end(JSON.stringify(producto));
 });
 
+router.post('/api/login', (context) => {
+  const { response, body } = context;
+  const { username, password } = body;
+
+  const user = users.find(u => u.usuario === username && u.contrasena === password);
+
+  if (user) {
+    // Crear una sesión simple en memoria
+    const sessionId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    sessions.set(sessionId, { user });
+    response.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Set-Cookie': `sessionId=${sessionId}; HttpOnly; Path=/`
+    });
+    response.end(JSON.stringify({ message: 'Login exitoso', user: { id: user.id, nombre: user.nombre, usuario: user.usuario } }));
+  } else {
+    response.writeHead(401, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ error: 'Credenciales inválidas' }));
+  }
+});
+
+router.post('/api/logout', (context) => {
+  const { request, response } = context;
+  const cookieHeader = request.headers['cookie'];
+  if (cookieHeader) {
+    const cookies = cookieHeader.split(';').reduce((acc, c) => {
+      const [k,v] = c.split('=').map(s=>s && s.trim()); if (k) acc[k]=v; return acc;
+    }, {});
+    const sessionId = cookies.sessionId;
+    if (sessionId) {
+      sessions.delete(sessionId);
+    }
+  }
+
+  // Borrar cookie
+  response.writeHead(200, { 'Set-Cookie': 'sessionId=; Max-Age=0; Path=/' , 'Content-Type': 'application/json'});
+  response.end(JSON.stringify({ message: 'Logout exitoso' }));
+});
+
+router.post('/productos/:id/upload', async (context) => {
+  const { request, response, params, body } = context;
+  const id = parseInt(params.id);
+  const producto = productos.find(p => p.id === id);
+
+  if (!producto) {
+    response.writeHead(404, { 'Content-Type': 'text/html' });
+    response.end('Producto no encontrado');
+    return;
+  }
+
+  // Validar sesión - sólo usuarios logueados
+  if (!context.user) {
+    response.writeHead(401, { 'Content-Type': 'text/html' });
+    response.end('No autorizado. Inicia sesión para subir imágenes.');
+    return;
+  }
+
+  const file = body.files.productImage;
+  if (!file) {
+    response.writeHead(400, { 'Content-Type': 'text/html' });
+    response.end('No se ha subido ningún archivo');
+    return;
+  }
+
+  // Validar tipo de archivo básico
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!allowedTypes.includes(file.contentType)) {
+    response.writeHead(400, { 'Content-Type': 'text/html' });
+    response.end('Tipo de archivo no permitido');
+    return;
+  }
+
+  // Normalizar y proteger el nombre de archivo
+  const safeFileName = `${Date.now()}-${path.basename(file.filename)}`;
+  const uploadPath = path.join(__dirname, 'public', 'images', safeFileName);
+  
+  try {
+    await fs.promises.writeFile(uploadPath, file.data);
+    producto.imagen_url = safeFileName;
+    
+    response.writeHead(302, { 'Location': `/productos/${id}` });
+    response.end();
+  } catch (error) {
+    console.error('Error al guardar el archivo:', error);
+    response.writeHead(500, { 'Content-Type': 'text/html' });
+    response.end('Error interno al guardar la imagen');
+  }
+});
+
+
 // Crear servidor
 const servidor = http.createServer(async (request, response) => {
   const { method } = request;
@@ -178,6 +307,9 @@ const servidor = http.createServer(async (request, response) => {
       const html = await templates.render('404', {
         titulo: 'Página no encontrada',
         mensaje: `La ruta ${pathname} no existe en este servidor.`
+        , user: context.user
+        , isAuthenticated: !!context.user
+        , isGuest: !context.user
       });
       response.writeHead(404, { 'Content-Type': 'text/html' });
       response.end(html);
@@ -191,6 +323,9 @@ const servidor = http.createServer(async (request, response) => {
       titulo: 'Error del servidor',
       mensaje: 'Ha ocurrido un error interno. Por favor, inténtalo de nuevo más tarde.',
       error: process.env.NODE_ENV === 'development' ? error.message : ''
+      , user: context.user
+      , isAuthenticated: !!context.user
+      , isGuest: !context.user
     });
 
     response.writeHead(500, { 'Content-Type': 'text/html' });

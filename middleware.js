@@ -1,5 +1,8 @@
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsp = require('fs').promises;
 const path = require('path');
+const url = require('url');
+const { parseMultipartFormData } = require('./multipart-parser');
 
 // Middleware de logging
 function logger(context) {
@@ -20,7 +23,7 @@ function cors(context) {
 async function jsonParser(context) {
   const { request } = context;
 
-  if (request.headers['content-type'] === 'application/json') {
+  if (request.headers['content-type'] && request.headers['content-type'].startsWith('application/json')) {
     let body = '';
 
     return new Promise((resolve, reject) => {
@@ -53,7 +56,7 @@ async function staticFiles(context) {
     const filePath = path.join(__dirname, pathname);
 
     try {
-      const stat = await fs.stat(filePath);
+      const stat = await fsp.stat(filePath);
 
       if (stat.isFile()) {
         const ext = path.extname(filePath);
@@ -84,9 +87,71 @@ function getContentType(ext) {
   return types[ext] || 'text/plain';
 }
 
+// Middleware para parsear multipart/form-data
+async function multipart(context) {
+  const { request } = context;
+  const contentType = request.headers['content-type'];
+
+  if (contentType && contentType.startsWith('multipart/form-data')) {
+    const boundaryMatch = /boundary=(.+)/.exec(contentType);
+    if (!boundaryMatch) {
+      return;
+    }
+    const boundary = boundaryMatch[1];
+
+    let body = [];
+    return new Promise((resolve, reject) => {
+      request.on('data', (chunk) => {
+        body.push(chunk);
+      });
+
+      request.on('end', () => {
+        const fullBuffer = Buffer.concat(body);
+        const parsedData = parseMultipartFormData(fullBuffer, boundary);
+        context.body = parsedData;
+        resolve();
+      });
+
+      request.on('error', reject);
+    });
+  }
+}
+
+// Middleware para gestionar sesiones simples (in-memory)
+// Se debe inicializar usando createSessionMiddleware(sessionStore)
+function createSessionMiddleware(sessionStore) {
+  return async function session(context) {
+    const { request } = context;
+    const cookieHeader = request.headers['cookie'];
+    context.session = null;
+    context.user = null;
+    if (!cookieHeader) return;
+
+    // Parse cookies simples (clave=valor; ...)
+    const cookies = cookieHeader.split(';').reduce((acc, cookiePart) => {
+      const [k, v] = cookiePart.split('=').map(s => s && s.trim());
+      if (k) acc[k] = v;
+      return acc;
+    }, {});
+
+    const sessionId = cookies.sessionId;
+    if (!sessionId) return;
+
+    if (sessionStore && typeof sessionStore.get === 'function') {
+      const sessionData = sessionStore.get(sessionId);
+      if (sessionData) {
+        context.session = sessionData;
+        context.user = sessionData.user || sessionData;
+      }
+    }
+  }
+}
+
 module.exports = {
   logger,
   cors,
   jsonParser,
-  staticFiles
+  staticFiles,
+  multipart,
+  createSessionMiddleware
 };
