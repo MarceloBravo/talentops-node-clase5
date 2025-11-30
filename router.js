@@ -2,17 +2,28 @@
 const url = require('url');
 
 class Router {
+    /**
+     * Crea una nueva instancia del Router.
+     */
   constructor() {
     this.routes = {};
     this.middlewares = [];
   }
 
-  // Agregar middleware global
+  /**
+   * Agrega un middleware global al router.
+   * @param {function} middleware - La función de middleware a agregar.
+   */
   use(middleware) {
     this.middlewares.push(middleware);
   }
 
-  // Registrar rutas con diferentes métodos
+  /**
+   * Registra una ruta con un método, una ruta y una o más funciones de manejo.
+   * @param {string} method - El método HTTP (GET, POST, etc.).
+   * @param {string} path - La ruta de la URL.
+   * @param  {...function} handlers - Las funciones de manejo de la ruta.
+   */
   addRoute(method, path, ...handlers) {
     if (!this.routes[method]) {
       this.routes[method] = [];
@@ -33,24 +44,48 @@ class Router {
     });
   }
 
-  // Métodos convenientes
+    /**
+     * Registra una ruta GET.
+     * @param {string} path - La ruta de la URL.
+     * @param  {...function} handlers - Las funciones de manejo de la ruta.
+     */
   get(path, ...handlers) {
     this.addRoute('GET', path, ...handlers);
   }
 
+    /**
+     * Registra una ruta POST.
+     * @param {string} path - La ruta de la URL.
+     * @param  {...function} handlers - Las funciones de manejo de la ruta.
+     */
   post(path, ...handlers) {
     this.addRoute('POST', path, ...handlers);
   }
 
+    /**
+     * Registra una ruta PUT.
+     * @param {string} path - La ruta de la URL.
+     * @param  {...function} handlers - Las funciones de manejo de la ruta.
+     */
   put(path, ...handlers) {
     this.addRoute('PUT', path, ...handlers);
   }
 
+    /**
+     * Registra una ruta DELETE.
+     * @param {string} path - La ruta de la URL.
+     * @param  {...function} handlers - Las funciones de manejo de la ruta.
+     */
   delete(path, ...handlers) {
     this.addRoute('DELETE', path, ...handlers);
   }
 
-  // Encontrar ruta que coincida
+    /**
+     * Encuentra una ruta que coincida con el método y la ruta de la URL.
+     * @param {string} method - El método HTTP.
+     * @param {string} pathname - La ruta de la URL.
+     * @returns {object|null} - La información de la ruta o null si no se encuentra.
+     */
   findRoute(method, pathname) {
     const methodRoutes = this.routes[method];
     if (!methodRoutes) return null;
@@ -71,7 +106,13 @@ class Router {
     return null;
   }
 
-  // Ejecutar middlewares y handlers
+    /**
+     * Ejecuta los middlewares y las funciones de manejo de una ruta.
+     * @param {http.IncomingMessage} request - El objeto de la petición.
+     * @param {http.ServerResponse} response - El objeto de la respuesta.
+     * @param {object} routeInfo - La información de la ruta.
+     * @returns {Promise<any>}
+     */
   async execute(request, response, routeInfo) {
     const { route, params } = routeInfo;
 
@@ -86,7 +127,10 @@ class Router {
 
     // Ejecutar middlewares globales
     for (const middleware of this.middlewares) {
-      await middleware(context);
+        const result = await middleware(context);
+        if (result === 'stop_execution') {
+            return;
+        }
     }
 
     // Ejecutar handlers de la ruta
