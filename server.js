@@ -6,6 +6,7 @@ const { logger, cors, jsonParser, staticFiles, multipart, createSessionMiddlewar
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
+const { cacheMiddleware, clearCache } = require('./middleware/cacheMiddleware.js'); // Importamos cache-middleware
 
 // Datos de ejemplo
 const productosData = fs.readFileSync(path.join(__dirname, 'data', 'productos.json'), 'utf-8');
@@ -28,7 +29,7 @@ router.use(multipart);
 router.use(createSessionMiddleware(sessions));
 
 // Rutas principales
-router.get('/', async (context) => {
+router.get('/', cacheMiddleware, async (context) => {
   const { response } = context;
 
   const html = await templates.render('home', {
@@ -44,7 +45,7 @@ router.get('/', async (context) => {
   response.end(html);
 });
 
-router.get('/productos', async (context) => {
+router.get('/productos', cacheMiddleware, async (context) => {
   const { response, query } = context;
 
   let productosFiltrados = productos;
@@ -72,7 +73,7 @@ router.get('/productos', async (context) => {
   response.end(html);
 });
 
-router.get('/productos/:id', async (context) => {
+router.get('/productos/:id', cacheMiddleware, async (context) => {
   const { response, params } = context;
   const id = parseInt(params.id);
   const producto = productos.find(p => p.id === id);
@@ -103,7 +104,7 @@ router.get('/productos/:id', async (context) => {
   response.end(html);
 });
 
-router.get('/acerca', async (context) => {
+router.get('/acerca', cacheMiddleware, async (context) => {
   const { response } = context;
 
   const html = await templates.render('about', {
@@ -120,7 +121,7 @@ router.get('/acerca', async (context) => {
   response.end(html);
 });
 
-router.get('/login', async (context) => {
+router.get('/login', cacheMiddleware, async (context) => {
   const { response } = context;
 
   const html = await templates.render('login', {
@@ -135,7 +136,7 @@ router.get('/login', async (context) => {
 });
 
 // API REST
-router.get('/api/productos', (context) => {
+router.get('/api/productos', cacheMiddleware, (context) => {
   const { response, query } = context;
 
   let resultados = productos;
@@ -177,7 +178,7 @@ router.get('/api/productos', (context) => {
   }));
 });
 
-router.get('/api/productos/:id', (context) => {
+router.get('/api/productos/:id', cacheMiddleware, (context) => {
   const { response, params } = context;
   const id = parseInt(params.id);
   const producto = productos.find(p => p.id === id);
@@ -292,6 +293,8 @@ router.post('/productos/:id/upload', async (context) => {
     const productosPath = path.join(__dirname, 'data', 'productos.json');
     await fs.promises.writeFile(productosPath, JSON.stringify(productos, null, 2), 'utf-8');
     
+    clearCache(); // Limpiar caché
+
     response.writeHead(302, { 'Location': `/productos/${id}` });
     response.end();
   } catch (error) {
@@ -351,7 +354,8 @@ router.post('/productos/:id/comentarios', async (context) => {
   // Persistir los cambios en data/productos.json
   try {
     const productosPath = path.join(__dirname, 'data', 'productos.json');
-    await fs.promises.writeFile(productosPath, JSON.stringify(productos, null, 2), 'utf-8');
+    await fs.promises.writeFile(productosPath, JSON.stringify(productos, null, 2), 'utf-8');    
+    clearCache(); // Limpiar caché
   } catch (err) {
     console.error('Error al guardar comentario en disco:', err);
     response.writeHead(500, { 'Content-Type': 'text/html' });
@@ -378,7 +382,7 @@ const servidor = http.createServer(async (request, response) => {
 
     // Buscar ruta en el router
     const routeInfo = router.findRoute(method, pathname);
-
+    debugger;
     if (routeInfo) {
       await router.execute(request, response, routeInfo);
     } else {
