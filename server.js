@@ -2,12 +2,12 @@ const http = require('http');
 const Router = require('./router');
 const TemplateEngine = require('./templates');
 const StaticServer = require('./static-server');
-const { logger, cors, jsonParser, staticFiles, multipart, createSessionMiddleware } = require('./middleware');
+const { logger, cors, jsonParser, staticFiles, multipart, createSessionMiddleware } = require('./middleware/middleware.js');
 const { performanceMetricsMiddleware } = require('./middleware/performanceMiddleware.js');
+const { cacheMiddleware, clearCache } = require('./middleware/cacheMiddleware.js'); // Importamos cache-middleware
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
-const { cacheMiddleware, clearCache } = require('./middleware/cacheMiddleware.js'); // Importamos cache-middleware
 
 // Datos de ejemplo
 const productosData = fs.readFileSync(path.join(__dirname, 'data', 'productos.json'), 'utf-8');

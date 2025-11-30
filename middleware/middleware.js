@@ -4,14 +4,22 @@ const path = require('path');
 const url = require('url');
 const { parseMultipartFormData } = require('./multipart-parser');
 
-// Middleware de logging
+/**
+ * Middleware de logging que imprime en consola cada petición.
+ * @param {object} context - El objeto de contexto de la petición.
+ * @param {http.IncomingMessage} context.request - El objeto de la petición.
+ */
 function logger(context) {
   const timestamp = new Date().toISOString();
   const { method, url } = context.request;
   console.log(`[${timestamp}] ${method} ${url}`);
 }
 
-// Middleware CORS
+/**
+ * Middleware que agrega las cabeceras CORS a la respuesta.
+ * @param {object} context - El objeto de contexto de la petición.
+ * @param {http.ServerResponse} context.response - El objeto de la respuesta.
+ */
 function cors(context) {
   const { response } = context;
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,7 +27,11 @@ function cors(context) {
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-// Middleware para parsear JSON
+/**
+ * Middleware que parsea el cuerpo de las peticiones con content-type application/json.
+ * @param {object} context - El objeto de contexto de la petición.
+ * @param {http.IncomingMessage} context.request - El objeto de la petición.
+ */
 async function jsonParser(context) {
   const { request } = context;
 
@@ -45,7 +57,13 @@ async function jsonParser(context) {
   }
 }
 
-// Middleware para servir archivos estáticos
+/**
+ * Middleware que sirve archivos estáticos desde el directorio /public.
+ * @param {object} context - El objeto de contexto de la petición.
+ * @param {http.IncomingMessage} context.request - El objeto de la petición.
+ * @param {http.ServerResponse} context.response - El objeto de la respuesta.
+ * @returns {string|void} - Retorna 'end' si se sirve un archivo estático.
+ */
 async function staticFiles(context) {
   const { request, response } = context;
   const parsedUrl = url.parse(request.url);
@@ -74,6 +92,11 @@ async function staticFiles(context) {
   }
 }
 
+/**
+ * Devuelve el content-type basado en la extensión del archivo.
+ * @param {string} ext - La extensión del archivo.
+ * @returns {string} - El content-type.
+ */
 function getContentType(ext) {
   const types = {
     '.html': 'text/html',
@@ -87,7 +110,11 @@ function getContentType(ext) {
   return types[ext] || 'text/plain';
 }
 
-// Middleware para parsear multipart/form-data
+/**
+ * Middleware que parsea el cuerpo de las peticiones con content-type multipart/form-data.
+ * @param {object} context - El objeto de contexto de la petición.
+ * @param {http.IncomingMessage} context.request - El objeto de la petición.
+ */
 async function multipart(context) {
   const { request } = context;
   const contentType = request.headers['content-type'];
@@ -117,9 +144,17 @@ async function multipart(context) {
   }
 }
 
-// Middleware para gestionar sesiones simples (in-memory)
-// Se debe inicializar usando createSessionMiddleware(sessionStore)
+/**
+ * Crea un middleware de sesión que utiliza un almacenamiento de sesión.
+ * @param {object} sessionStore - El almacenamiento de sesión.
+ * @returns {function} - El middleware de sesión.
+ */
 function createSessionMiddleware(sessionStore) {
+    /**
+     * Middleware que gestiona las sesiones de usuario.
+     * @param {object} context - El objeto de contexto de la petición.
+     * @param {http.IncomingMessage} context.request - El objeto de la petición.
+     */
   return async function session(context) {
     const { request } = context;
     const cookieHeader = request.headers['cookie'];
