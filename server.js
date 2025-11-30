@@ -449,4 +449,5 @@ process.on('SIGINT', () => {
 });
 
 // Iniciar servidor
-iniciarServidor();
+iniciarServidor();  //Comentar para ejecutar los test, descomentar para ejecutar la aplicación
+//module.exports = servidor; //Descomentar para ejecutar los test, comentar para ejecutar la aplicación
