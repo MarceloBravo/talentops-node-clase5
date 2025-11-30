@@ -1,6 +1,15 @@
 const NodeCache = require('node-cache');
 const cache = new NodeCache({ stdTTL: 600, useClones: false });
 
+/**
+ * Middleware para cachear las respuestas de las peticiones.
+ * Si una petición ya ha sido cacheada, la sirve desde la caché.
+ * Si no, la procesa y la guarda en caché para futuras peticiones.
+ * @param {object} context - El objeto de contexto de la petición.
+ * @param {http.IncomingMessage} context.request - El objeto de la petición.
+ * @param {http.ServerResponse} context.response - El objeto de la respuesta.
+ * @returns {string|void} - Retorna 'stop_execution' si la respuesta es servida desde la caché.
+ */
 function cacheMiddleware(context) {
   const { request, response } = context;
   const key = request.url;
@@ -61,6 +70,9 @@ function cacheMiddleware(context) {
   };
 }
 
+/**
+ * Limpia toda la caché.
+ */
 function clearCache() {
   cache.flushAll();
   console.log("Caché completamente limpiada.");

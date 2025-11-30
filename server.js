@@ -3,6 +3,7 @@ const Router = require('./router');
 const TemplateEngine = require('./templates');
 const StaticServer = require('./static-server');
 const { logger, cors, jsonParser, staticFiles, multipart, createSessionMiddleware } = require('./middleware');
+const { performanceMetricsMiddleware } = require('./middleware/performanceMiddleware.js');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -22,6 +23,7 @@ const staticServer = new StaticServer();
 // In-memory sessions store
 const sessions = new Map();
 
+router.use(performanceMetricsMiddleware);
 router.use(logger);
 router.use(cors);
 router.use(jsonParser);
