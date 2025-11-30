@@ -1,40 +1,47 @@
 ﻿[
-    {
-        "id": 1,
-        "nombre": "Laptop Gaming",
-        "precio": 1200,
-        "categoria": "Electrónica",
-        "imagen_url": null,
-        "comentarios": [
-            {
-                "user_id": "axysajxcshyxgasj",
-                "nombre": "Juan Pérez",
-                "puntuacion": 5,
-                "comentario": "Excelente laptop para gaming",
-                "fecha": "2025-01-01"
-            },
-            {
-                "user_id": "srtdsfga456ufh",
-                "nombre": "Perico de los Palotes",
-                "puntuacion": 3,
-                "comentario": "Batería dura poco",
-                "fecha": "2025-12-01"
-            },
-            {
-                "user_id": "47yi4ubduh",
-                "nombre": "Juana González",
-                "puntuacion": 4,
-                "comentario": "Excelente laptop para gaming pero la entrega se retrazó 1 día",
-                "fecha": "2025-12-01"
-            }
-        ]
-    },
-    {
-        "id": 2,
-        "nombre": "Mouse Inalámbrico",
-        "precio": 50,
-        "categoria": "Accesorios",
-        "imagen_url": null,
-        "comentarios": []
-    }
+  {
+    "id": 1,
+    "nombre": "Laptop Gaming",
+    "precio": 1200,
+    "categoria": "Electrónica",
+    "imagen_url": "default.jpg",
+    "comentarios": [
+      {
+        "autor": "axysajxcshyxgasj",
+        "nombre": "Juan Pérez",
+        "puntuacion": 5,
+        "comentario": "Excelente laptop para gaming",
+        "fecha": "2025-01-01"
+      },
+      {
+        "autor": "srtdsfga456ufh",
+        "nombre": "Perico de los Palotes",
+        "puntuacion": 3,
+        "comentario": "Batería dura poco",
+        "fecha": "2025-12-01"
+      },
+      {
+        "autor": "47yi4ubduh",
+        "nombre": "Juana González",
+        "puntuacion": 4,
+        "comentario": "Excelente laptop para gaming pero la entrega se retrazó 1 día",
+        "fecha": "2025-12-01"
+      },
+      {
+        "autor": "1",
+        "nombre": "Pedro Gonzalez",
+        "puntuacion": 5,
+        "comentario": "COMENTARIO DE PRUEBA JKLFJKJFJDLKSS",
+        "fecha": "2025-11-29"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "nombre": "Mouse Inalámbrico",
+    "precio": 50,
+    "categoria": "Accesorios",
+    "imagen_url": null,
+    "comentarios": []
+  }
 ]

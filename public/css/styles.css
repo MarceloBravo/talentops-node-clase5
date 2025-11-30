@@ -268,6 +268,185 @@ footer {
   background: #2980b9;
 }
 
+/* Styles for product upload and comment forms */
+.producto-detalle form[action^="/productos/"][action$="/upload"],
+.producto-detalle form[action^="/productos/"][action$="/comentarios"],
+.producto-detalle .upload-form form,
+.producto-detalle .comentario-usuario form,
+.producto-detalle .upload-form-form,
+.producto-detalle .comentario-form {
+  background: #ffffff;
+  padding: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  max-width: 720px;
+  margin: 1rem 0;
+}
+
+/* Stronger enforcement: add border highlight to ensure styles are visible */
+.producto-detalle .upload-form-form {
+  border: 1px solid rgba(13,110,253, .15) !important;
+}
+.producto-detalle .comentario-form {
+  border: 1px solid rgba(108,117,125, .12) !important;
+}
+
+.upload-form h3,
+.comentario-usuario h3 {
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
+}
+
+.upload-form input[type="file"],
+.upload-form-form input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #dcdcdc;
+  background: #fafafa;
+}
+
+.comentario-usuario .row {
+  margin-bottom: 0.75rem;
+}
+
+.comentario-usuario label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.comentario-usuario input[type="text"],
+.comentario-usuario select,
+.comentario-usuario textarea,
+.upload-form input[type="file"],
+.upload-form-form input[type="file"],
+.comentario-form .form-control,
+.upload-form-form .form-control {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da; /* bootstrap-like */
+  border-radius: 0.375rem; /* 6px */
+  font-size: 0.95rem;
+  color: #212529;
+  background: #fff;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+.producto-detalle .form-control { background: #fff !important; color:#212529 !important; }
+
+.comentario-usuario textarea { min-height: 100px; }
+
+.upload-form .btn,
+.upload-form .upload-btn,
+.upload-form button {
+  display: inline-block;
+  padding: 0.5rem 0.85rem;
+  background: #0d6efd; /* bootstrap primary */
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background .15s ease-in-out, box-shadow .15s ease-in-out, transform .05s;
+}
+
+.comentario-usuario .btn,
+.comentario-usuario .comment-btn,
+.comentario-usuario button {
+  display: inline-block;
+  padding: 0.5rem 0.85rem;
+  background: #6c757d; /* bootstrap secondary */
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background .15s ease-in-out, box-shadow .15s ease-in-out, transform .05s;
+}
+
+.upload-form .btn:hover, .upload-form .upload-btn:hover { background: #0b5ed7; transform: translateY(-1px); }
+.upload-form button:active { background: #0a58ca; }
+.upload-form button:focus { box-shadow: 0 0 0 .2rem rgba(13,110,253, .25); outline: none; }
+
+.comentario-usuario .btn:hover, .comentario-usuario .comment-btn:hover { background: #5a6268; transform: translateY(-1px); }
+.comentario-usuario button:active { background: #545b62; }
+.comentario-usuario button:focus { box-shadow: 0 0 0 .2rem rgba(108,117,125, .25); outline: none; }
+
+/* Small responsive tweaks */
+@media (max-width: 768px) {
+  form[action^="/productos/"][action$="/upload"],
+  form[action^="/productos/"][action$="/comentarios"],
+  .upload-form form,
+  .comentario-usuario form {
+    padding: 1rem;
+    margin: 0.75rem 0;
+  }
+}
+
+/* Focus styles for form controls similar to bootstrap */
+.comentario-usuario input[type="text"],
+.comentario-usuario select,
+.comentario-usuario textarea,
+.upload-form input[type="file"] {
+  box-shadow: none;
+}
+.comentario-usuario input[type="text"]:focus,
+.comentario-usuario select:focus,
+.comentario-usuario textarea:focus,
+.upload-form input[type="file"]:focus {
+  border-color: #86b7fe; /* blue-ish */
+  box-shadow: 0 0 0 .2rem rgba(13,110,253, .15);
+  outline: none;
+}
+
+/* Small helper classes: make inputs look more like bootstrap 'form-control' */
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+/* Button base similar to Bootstrap */
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+  vertical-align: middle;
+  user-select: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.375rem;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, box-shadow .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+/* Ensure .form-control and .btn inside producto-detalle are styled specifically */
+.producto-detalle .form-control { max-width: 100%; }
+.producto-detalle .btn { font-size: 0.95rem; }
+
+/* Variants (primary/secondary) - ensure they have higher specificity if needed */
+.producto-detalle .btn-primary, .btn-primary { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+.producto-detalle .btn-primary:hover { background: #0b5ed7; }
+.producto-detalle .btn-secondary, .btn-secondary { background: #6c757d; color: #fff; border-color: #6c757d; }
+.producto-detalle .btn-secondary:hover { background: #5a6268; }
+
+/* Ensure buttons inside the specific forms are correctly styled */
+.producto-detalle .upload-form .upload-btn, .producto-detalle .upload-form-form .upload-btn { background: #0d6efd !important; color: #fff !important; }
+.producto-detalle .comentario-usuario .comment-btn, .producto-detalle .comentario-form .comment-btn { background: #6c757d !important; color: #fff !important; }
+
 .comentarios-seccion {
   margin-top: 2rem;
   padding-top: 2rem;

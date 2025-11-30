@@ -316,23 +316,47 @@ router.post('/productos/:id/comentarios', async (context) => {
     return;
   }
 
+  // Validación básica de campos
   const errors = [];
-  if(!body.fields?.user_id)[...errors, 'Debes iniciar sessión'];
-  if(!body.fields?.puntuacion)[...errors, 'Debes iniciar sessión'];
-  if(!body.fields?.nombre)[...errors, 'Debes iniciar sessión'];
-  if(!body.fields?.comentario)[...errors, 'Debes iniciar sessión'];
+  if (!body.fields || !body.fields.user_id) errors.push('Debes iniciar sesión');
+  if (!body.fields || !body.fields.puntuacion) errors.push('Falta la puntuación');
+  if (!body.fields || !body.fields.nombre) errors.push('Falta el nombre');
+  if (!body.fields || !body.fields.comentario) errors.push('Falta el comentario');
 
-  if(errors.length > 0){
-    response.writeHead(401, { 'Content-Type': 'text/html' });
-    response.end('Datos incompletos o no válidos:\n'.errors.join('\n'));
+  if (errors.length > 0) {
+    response.writeHead(400, { 'Content-Type': 'text/html' });
+    response.end('Datos incompletos o no válidos:\n' + errors.join('\n'));
     return;
   }
   const fecha = new Date();
   body.fields.fecha = `${fecha.getFullYear()}-${fecha.getMonth()+1}-${fecha.getDate()}`
 
 
-  console.log('----->comentario:', body.fields);
-  const comentario = body.fields;
+  // Construir el objeto comentario que se guardará
+  const comentario = {
+    autor: body.fields.user_id,
+    nombre: body.fields.nombre,
+    puntuacion: parseInt(body.fields.puntuacion, 10) || 0,
+    comentario: body.fields.comentario,
+    fecha: body.fields.fecha || new Date().toISOString()
+  };
+
+  // Asegurar que el producto tenga un array de comentarios y anexar el nuevo comentario
+  producto.comentarios = producto.comentarios || [];
+  producto.comentarios.push(comentario);
+
+  // Persistir los cambios en data/productos.json
+  try {
+    const productosPath = path.join(__dirname, 'data', 'productos.json');
+    await fs.promises.writeFile(productosPath, JSON.stringify(productos, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error al guardar comentario en disco:', err);
+    response.writeHead(500, { 'Content-Type': 'text/html' });
+    response.end('Error interno al guardar el comentario');
+    return;
+  }
+
+  console.log('----->comentario guardado:', comentario);
   response.writeHead(302, { 'Location': `/productos/${id}` });
   response.end();
 });

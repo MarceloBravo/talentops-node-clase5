@@ -14,24 +14,24 @@
   {{#if user}}
   <div class="upload-form">
     <h3>Subir nueva imagen</h3>
-    <form action="/productos/{{producto.id}}/upload" method="POST" enctype="multipart/form-data">
-      <input type="file" name="productImage" accept="image/*" required>
-      <button type="submit">Subir Imagen</button>
+    <form action="/productos/{{producto.id}}/upload" method="POST" enctype="multipart/form-data" class="upload-form-form">
+      <input class="form-control" type="file" name="productImage" accept="image/*" required>
+      <button class="btn btn-primary upload-btn" type="submit">Subir Imagen</button>
     </form>
   </div>
   <div class="comentario-usuario">
     <h3>Agregar comentario</h3>
-    <form action="/productos/{{producto.id}}/comentarios" method="POST" enctype="multipart/form-data">
+    <form action="/productos/{{producto.id}}/comentarios" method="POST" enctype="multipart/form-data" class="comentario-form">
         <input type="hidden" name="user_id" value="{{user.id}}"/>
         <input type="hidden" name="fecha" value="{{user.nombre}}"/>
         <input type="hidden" name="nombre" value="{{user.nombre}}"/>
         <div class="row">
           <label for="comentarioId"><strong>Comentario:</strong></label>
-          <input type="text" id="comentarioId" name="comentario" accept="image/*" required value=""/>
+          <input class="form-control" type="text" id="comentarioId" name="comentario" accept="image/*" required value=""/>
         </div>
         <div class="row">
           <label for="puntuacionId"><strong>Valoración:</strong></label>
-          <select id="puntuacionId" name="puntuacion" accept="image/*" required value="">
+          <select class="form-control" id="puntuacionId" name="puntuacion" accept="image/*" required value="">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -39,7 +39,7 @@
             <option value="5">5</option>
           </select>
         </div>
-      <button type="submit">Subir comentario</button>
+      <button class="btn btn-secondary comment-btn" type="submit">Subir comentario</button>
     </form>
   </div>
   {{/if}}
