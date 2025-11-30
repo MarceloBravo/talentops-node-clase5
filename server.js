@@ -289,6 +289,9 @@ router.post('/productos/:id/upload', async (context) => {
     await fs.promises.writeFile(uploadPath, file.data);
     producto.imagen_url = safeFileName;
     
+    const productosPath = path.join(__dirname, 'data', 'productos.json');
+    await fs.promises.writeFile(productosPath, JSON.stringify(productos, null, 2), 'utf-8');
+    
     response.writeHead(302, { 'Location': `/productos/${id}` });
     response.end();
   } catch (error) {

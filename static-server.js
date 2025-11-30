@@ -25,7 +25,7 @@ class StaticServer {
   // Servir archivo estático
   async serve(request, response) {
     const parsedUrl = url.parse(request.url);
-    const pathname = parsedUrl.pathname;
+    const pathname = decodeURIComponent(parsedUrl.pathname);
 
     // Solo servir rutas que empiecen con /static/
     if (!pathname.startsWith('/static/')) {
